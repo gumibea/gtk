@@ -1,0 +1,71 @@
+diff --git a/src/sass/gnome-shell/widgets-48-0/_quick-settings.scss b/src/sass/gnome-shell/widgets-48-0/_quick-settings.scss
+--- a/src/sass/gnome-shell/widgets-48-0/_quick-settings.scss
++++ b/src/sass/gnome-shell/widgets-48-0/_quick-settings.scss
+@@ -1,7 +1,7 @@
+ .quick-settings {
+-  padding: $base_padding * 3 !important;
++  padding: ($base_padding * 3) ($base_padding * 2.5) !important;
+   border-radius: $base_radius + $base_padding * 3 !important;
+-  margin-top: 4px !important;
++  margin-top: $base_padding + 4px !important;
+ 
+   .icon-button, .button {
+     padding: $base_padding * 1.75;
+@@ -19,8 +19,8 @@
+ 
+ .quick-toggle, .quick-toggle-has-menu {
+   border-radius: $base_radius;
+-  min-width: 12em;
+-  max-width: 12em;
++  min-width: 10.5em;
++  max-width: 10.5em;
+   min-height: $scalable_icon_size * 3; // use icon size so the button scales
+   border: none;
+ }
+@@ -88,7 +88,7 @@
+     &:ltr { border-radius: $base_radius 0 0 $base_radius; }
+     &:ltr > StBoxLayout { padding-right: $scaled_padding * 1.5; }
+     &:rtl { border-radius: 0 $base_radius $base_radius 0; }
+-    &:rtr > StBoxLayout { padding-left: $scaled_padding * 1.5; }
++    &:rtl > StBoxLayout { padding-left: $scaled_padding * 1.5; }
+ 
+     &:ltr:last-child { border-radius: $base_radius; }
+     &:rtl:last-child { border-radius: $base_radius; }
+@@ -149,11 +149,36 @@
+ 
+   .slider-bin {
+     &:focus { @include button(focus); }
+-    padding: $base_padding;
++    min-height: 14px;
++    padding: $base_padding * 0.75 $base_padding;
+     border-radius: $circular_radius;
++    background-color: transparent;
+   }
+ }
+ 
++// Quick Settings sliders (GNOME 49 BarLevel): solid accent thumb + thin track.
++.quick-settings .quick-slider .slider-bin .slider {
++  color: $primary !important;
++  -slider-handle-radius: 7px !important;
++  -slider-handle-border-width: 0 !important;
++  -slider-handle-border-color: transparent !important;
++  -barlevel-height: 3px !important;
++  -barlevel-background-color: rgba($text, 0.2) !important;
++  -barlevel-border-width: 0 !important;
++  -barlevel-border-color: transparent !important;
++  -barlevel-active-background-color: $primary !important;
++  -barlevel-active-border-color: $primary !important;
++  -barlevel-overdrive-color: $destructive !important;
++  -barlevel-overdrive-border-width: 0 !important;
++  -barlevel-overdrive-border-color: transparent !important;
++  -barlevel-overdrive-separator-width: 1px !important;
++
++  &:hover {
++    color: mix($text, $primary, 10%) !important;
++  }
++}
++
++
+ .quick-toggle-menu {
+   background-color: $popover !important;
+   color: $text !important;

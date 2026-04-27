@@ -1,0 +1,106 @@
+--- a/src/sass/gnome-shell/widgets-46-0/_quick-settings.scss
++++ b/src/sass/gnome-shell/widgets-46-0/_quick-settings.scss
+@@ -1,5 +1,5 @@
+ .quick-settings {
+-  padding: $base_padding * 3 !important;
++  padding: ($base_padding * 3) ($base_padding * 2.5) !important;
+   border-radius: $base_radius + $base_padding * 3 !important;
+   margin-top: $base_padding + 4px !important;
+ 
+@@ -17,11 +17,11 @@
+   spacing-columns: $base_padding * 2;
+ }
+ 
+-.quick-toggle, .quick-menu-toggle {
++.quick-toggle, .quick-menu-toggle, .quick-toggle-has-menu {
+   border-radius: $base_radius;
+-  min-width: 12em;
+-  max-width: 12em;
+-  min-height: 44px;
++  min-width: 10.5em;
++  max-width: 10.5em;
++  min-height: $scalable_icon_size * 3;
+   border: none;
+ }
+ 
+@@ -51,7 +51,7 @@
+     }
+   }
+ 
+-  & > StBoxLayout { spacing: $base_padding; }
++  & > StBoxLayout { spacing: $base_padding * 1.5; }
+ 
+   /* Move padding into the box; this is to allow menu arrows
+      to extend to the border */
+@@ -70,7 +70,7 @@
+   .quick-toggle-icon { icon-size: $base_icon_size; }
+ }
+ 
+-.quick-menu-toggle {
++.quick-menu-toggle, .quick-toggle-has-menu {
+   & .quick-toggle {
+     min-width: auto;
+     max-width: auto;
+@@ -78,13 +78,17 @@
+     &:ltr { border-radius: $base_radius 0 0 $base_radius; }
+     &:ltr > StBoxLayout { padding-right: $base_padding * 1.5; }
+     &:rtl { border-radius: 0 $base_radius $base_radius 0; }
+-    &:rtr > StBoxLayout { padding-left: $base_padding * 1.5; }
++    &:rtl > StBoxLayout { padding-left: $base_padding * 1.5; }
+ 
+     &:ltr:last-child { border-radius: $base_radius; }
+     &:rtl:last-child { border-radius: $base_radius; }
+   }
+ 
+-  .quick-toggle-arrow {
++  .quick-toggle-separator {
++    width: 0;
++  }
++
++  .quick-toggle-arrow, .quick-toggle-menu-button {
+     background-color: $button !important;
+     padding: $base_padding $base_padding * 1.75;
+     border: none !important;
+@@ -123,9 +127,10 @@
+ 
+   .slider-bin {
+     &:focus { @include button(focus); }
+-    min-height: 16px; // slider size
+-    padding: $base_padding;
++    min-height: 14px;
++    padding: $base_padding * 0.75 $base_padding;
+     border-radius: $circular_radius;
++    background-color: transparent;
+   }
+ 
+   .quick-toggle-icon {
+@@ -147,6 +152,29 @@
+   }
+ }
+ 
++
++// Quick Settings sliders (GNOME 49 BarLevel): solid accent thumb + thin track.
++.quick-settings .quick-slider .slider-bin .slider {
++  color: $primary !important;
++  -slider-handle-radius: 7px !important;
++  -slider-handle-border-width: 0 !important;
++  -slider-handle-border-color: transparent !important;
++  -barlevel-height: 3px !important;
++  -barlevel-background-color: rgba($text, 0.2) !important;
++  -barlevel-border-width: 0 !important;
++  -barlevel-border-color: transparent !important;
++  -barlevel-active-background-color: $primary !important;
++  -barlevel-active-border-color: $primary !important;
++  -barlevel-overdrive-color: $destructive !important;
++  -barlevel-overdrive-border-width: 0 !important;
++  -barlevel-overdrive-border-color: transparent !important;
++  -barlevel-overdrive-separator-width: 1px !important;
++
++  &:hover {
++    color: mix($text, $primary, 10%) !important;
++  }
++}
++
+ .quick-toggle-menu {
+   background-color: $popover !important;
+   color: $text !important;

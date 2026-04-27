@@ -3,6 +3,7 @@ import shutil
 import subprocess
 import glob
 import zipfile
+from pathlib import Path
 from .logger import logger
 from .utils import find_and_replace, Subsitution
 from .context import BuildContext, IS_DARK, IS_LIGHT, IS_WINDOW_NORMAL, DARK_LIGHT
@@ -39,6 +40,24 @@ def apply_tweaks(ctx: BuildContext):
 SASSC_OPT = ["-M", "-t", "expanded"]
 
 
+def _write_gtk4_settings_template(ctx: BuildContext) -> None:
+    """GTK4/Libadwaita often needs ~/.config/gtk-4.0/settings.ini; gsettings alone is not always enough."""
+    prefer_dark = "true" if ctx.flavor.dark else "false"
+    path = Path(ctx.output_dir()) / "gtk-4.0-settings.ini.template"
+    path.write_text(
+        "# Merge the [Settings] block into ~/.config/gtk-4.0/settings.ini (back up first).\n"
+        "# Libadwaita may ignore gtk-theme from gsettings when the desktop portal disagrees.\n"
+        "# If themes still do not apply, try:  ADW_DISABLE_PORTAL=1  (e.g. in ~/.config/environment.d/*.conf)\n"
+        "# Quick test:  GTK_THEME="
+        f"{ctx.build_id()} gnome-text-editor\n"
+        "\n"
+        "[Settings]\n"
+        f"gtk-theme-name={ctx.build_id()}\n"
+        f"gtk-application-prefer-dark-theme={prefer_dark}\n",
+        encoding="utf-8",
+    )
+
+
 def compile_sass(src: str, dest: str) -> subprocess.Popen:
     return subprocess.Popen(["sassc", *SASSC_OPT, src, dest])
 
@@ -62,6 +81,7 @@ def execute_build(ctx: BuildContext):
         file.write("[X-GNOME-Metatheme]\n")
         file.write(f"GtkTheme={ctx.build_id()}\n")
         file.write(f"MetacityTheme={ctx.build_id()}\n")
+        file.write(f"ShellTheme={ctx.build_id()}\n")
         file.write(f"IconTheme=Tela-circle{ctx.apply_suffix(IS_DARK)}\n")
         file.write(f"CursorTheme={ctx.flavor.name}-cursors\n")
         file.write("ButtonLayout=close,minimize,maximize:menu\n")
@@ -119,6 +139,8 @@ def execute_build(ctx: BuildContext):
 
     for task in sassc_tasks:
         task.wait()
+
+    _write_gtk4_settings_template(ctx)
 
     os.makedirs(f"{output_dir}/metacity-1", exist_ok=True)
     shutil.copyfile(
@@ -360,6 +382,16 @@ def build_with_context(ctx: BuildContext):
     make_assets(ctx)
     logger.info("Asset bundling done")
 
+    logger.info(
+        "Theme install: copy to ~/.local/share/themes/ then in GNOME Tweaks set "
+        f"Applications (and Shell) to '{ctx.build_id()}'. "
+        f"If GTK4 apps still look like Adwaita, merge '{ctx.build_id()}/gtk-4.0-settings.ini.template' "
+        "into ~/.config/gtk-4.0/settings.ini and re-login (Libadwaita + portal often needs this). "
+        "Try: GTK_THEME="
+        f"{ctx.build_id()} gnome-text-editor — if that works, use settings.ini / ADW_DISABLE_PORTAL=1. "
+        "User Themes extension may be required for Shell. Flatpak: allow xdg-data/themes."
+    )
+
     if ctx.output_format == "zip":
         zip_artifacts(
             [
@@ -373,9 +405,15 @@ def build_with_context(ctx: BuildContext):
 
 
 def gnome_shell_version(src_dir):
-    # Hardcoded here, Colloid checks for this on end user machines
-    # but we cannot do that. Old build system would've resulted in this too.
-    gs_version = "46-0"
+    """Pick the newest Colloid widget bundle present (48-0 for GNOME 47+, 46-0 older)."""
+    sass_gs = Path(src_dir) / "sass/gnome-shell"
+    gs_version = "40-0"
+    for ver in ("48-0", "46-0", "44-0", "42-0", "40-0"):
+        if (sass_gs / f"_widgets-{ver}.scss").is_file():
+            gs_version = ver
+            break
+
+    logger.info(f"Using Colloid gnome-shell widget bundle: widgets-{gs_version}")
 
     shutil.copyfile(
         f"{src_dir}/sass/gnome-shell/_common.scss",
